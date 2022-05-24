@@ -78,8 +78,13 @@ async function run() {
         });
 
 
-        // get all orders
-        app.get('/orders', verifyJWT, async (req, res) => {
+        //get all orders
+        app.get('/orders', async(req, res) => {
+            const allOrders = await orderCollection.find().toArray();
+            res.send(allOrders);
+        })
+        // get specific users orders
+        app.get('/order', verifyJWT, async (req, res) => {
             const email = req.query.email;
             const decodedEmail = req.decoded.email;
             if(email === decodedEmail){
@@ -95,8 +100,15 @@ async function run() {
 
         })
 
-        // delete an item
+        // delete an item by admin
         app.delete('/orders/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await orderCollection.deleteOne(query);
+            res.send(result);
+        })
+        // delete an item by user
+        app.delete('/order/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
             const result = await orderCollection.deleteOne(query);
