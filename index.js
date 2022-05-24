@@ -37,6 +37,7 @@ async function run() {
             res.send(result);
         });
 
+        // add user data
         app.put('/users/:email', async (req, res) => {
             const email = req.params.email;
             const user = req.body;
@@ -49,7 +50,7 @@ async function run() {
             res.send(result);
         });
 
-        // POST neew items
+        // POST ner order
 
         app.post('/orders', async (req, res) => {
             const order = req.body;
@@ -59,6 +60,7 @@ async function run() {
         });
 
 
+        // get all orders
         app.get('/orders', async (req, res) => {
             const email = req.query.email;
             const query = {email: email};
@@ -96,6 +98,3 @@ app.listen(port, () => {
     console.log(`listening on port ${port}`)
 })
 
-// const http = require('http'); 
-// const server = http.createServer(app); 
-// server.listen(process.env.PORT);
