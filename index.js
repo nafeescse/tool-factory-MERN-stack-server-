@@ -31,7 +31,6 @@ function verifyJWT(req, res, next){
 
 }
 
-
 async function run() {
     try {
         await client.connect();
@@ -53,6 +52,12 @@ async function run() {
             const result = await toolsCollection.findOne(query);
             res.send(result);
         });
+        app.delete('/tools/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await toolsCollection.deleteOne(query);
+            res.send(result);
+        })
 
         app.get('/users', verifyJWT, async(req, res) => {
             const users= await userCollection.find().toArray();
@@ -79,16 +84,23 @@ async function run() {
             res.send({result, token});
         });
 
-            // add admin
-            app.put('/users/admin/:email', async (req, res) => {
-                const email = req.params.email;
-                const filter = {email: email};
-                const updatedDoc = {
-                    $set: {role: 'admin'},
-                };
-                const result = await userCollection.updateOne(filter, updatedDoc);
-                res.send({result});
-            });
+        app.get('/admin/:email', async(req, res) => {
+            const email = req.params.email;
+            const user = await userCollection.findOne({email: email});
+            const isAdmin = user.role === 'admin';
+            res.send({admin: isAdmin});
+        })
+
+        // add admin
+        app.put('/users/admin/:email', verifyJWT, async (req, res) => {
+            const email = req.params.email;
+            const filter = {email: email};
+            const updatedDoc = {
+                $set: {role: 'admin'},
+            };
+            const result = await userCollection.updateOne(filter, updatedDoc);
+            res.send({result});
+        });
 
         // POST ner order
 
@@ -118,8 +130,6 @@ async function run() {
             else{
                 return res.status(403).send({message: 'Forbidden Access'})
             }
-            
-
         })
 
         // delete an item by admin
@@ -129,6 +139,7 @@ async function run() {
             const result = await orderCollection.deleteOne(query);
             res.send(result);
         })
+
         // delete an item by user
         app.delete('/order/:id', async (req, res) => {
             const id = req.params.id;
