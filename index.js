@@ -37,6 +37,8 @@ async function run() {
         const toolsCollection = client.db('autocar-tools').collection('products');
         const orderCollection = client.db('autocar-tools').collection('orders');
         const userCollection = client.db('autocar-tools').collection('users');
+        const profileCollection = client.db('autocar-tools').collection('profiles');
+        const reviewsCollection = client.db('autocar-tools').collection('reviews');
 
         app.get('/tools', async (req, res) => {
             const query = {};
@@ -45,6 +47,13 @@ async function run() {
             res.send(tools);
 
         })
+        //Add a product
+        app.post('/tools', async (req, res) => {
+            const item = req.body;
+            console.log('adding new item', item);
+            const result = await toolsCollection.insertOne(item);
+            res.send(result)
+        });
 
         app.get('/tools/:id', async (req, res) => {
             const id = req.params.id;
@@ -52,6 +61,9 @@ async function run() {
             const result = await toolsCollection.findOne(query);
             res.send(result);
         });
+
+  
+
         app.delete('/tools/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
@@ -82,6 +94,26 @@ async function run() {
             const result = await userCollection.updateOne(filter, updatedDoc, options);
             const token = jwt.sign({email: email}, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1h'});
             res.send({result, token});
+        });
+
+        app.post('/profile', async (req, res) => {
+            const profile = req.body;
+            console.log('adding new item', profile);
+            const result = await profileCollection.insertOne(profile);
+            res.send(result)
+        });
+
+
+        app.get('/profile',  async(req, res) => {
+            const users= await profileCollection.find().toArray();
+            res.send(users);
+        })
+
+        app.get('/profile/:email', async (req, res) => {
+            const email = req.params.email;
+            const filter = {email: email};
+            const result = await profileCollection.findOne(filter);
+            res.send(result);
         });
 
         app.get('/admin/:email', async(req, res) => {
@@ -132,6 +164,15 @@ async function run() {
             }
         })
 
+              
+        app.get('/orders/:email', async(req, res) => {
+            const email = req.params.email;
+            const query = { email: email };
+            const user = await orderCollection.findOne(query);
+            res.send(user);
+        })
+
+
         // delete an item by admin
         app.delete('/orders/:id', async (req, res) => {
             const id = req.params.id;
@@ -146,6 +187,17 @@ async function run() {
             const query = { _id: ObjectId(id) };
             const result = await orderCollection.deleteOne(query);
             res.send(result);
+        })
+        
+        app.post('/reviews', async (req, res) => {
+            const reviews = req.body;
+            console.log('adding new item', reviews);
+            const result = await reviewsCollection.insertOne(reviews);
+            res.send(result)
+        });
+        app.get('/reviews', async(req, res) => {
+            const allOrders = await reviewsCollection.find().toArray();
+            res.send(allOrders);
         })
 
 
