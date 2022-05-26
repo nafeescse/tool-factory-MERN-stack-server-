@@ -2,12 +2,10 @@
 
 Please visit server side [Live Link](https://morning-crag-21766.herokuapp.com/).
 
-## Available Scripts
-
-In the project directory, you can run:
-
-### `npm start`
-
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
-
+## Top Features
+- Showcase All Products
+- Order & payment by customer
+- Manage Orders & Products by admin
+- Manage all customers
+- Smart Authentication Systems
+- Review giving system
