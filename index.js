@@ -191,12 +191,12 @@ async function run() {
             res.send(user);
         })
 
-        app.get('/orders/:id', async(req, res) => {
+        app.get('/orders/:id', verifyJWT, async(req, res) =>{
             const id = req.params.id;
             const query = {_id: ObjectId(id)};
             const order = await orderCollection.findOne(query);
             res.send(order);
-        })
+          })
 
         app.patch('/orders/:id',  async(req, res) =>{
             const id  = req.params.id;
@@ -211,7 +211,7 @@ async function run() {
       
             const result = await paymentsCollection.insertOne(payment);
             const updatedOrder = await orderCollection.updateOne(filter, updatedDoc);
-            res.send(updatedDoc);
+            res.send(updatedOrder);
           })
       
 
