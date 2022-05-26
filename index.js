@@ -7,7 +7,7 @@ require('dotenv').config();
 // const ObjectId = require('mongodb').ObjectId;
 const app = express();
 const port = process.env.PORT || 5000;
-const stripe = require('stripe')("sk_test_51L3USNLd7zZ2ao66YSMqFU2GG74w5W3NSmcb4ZIF2ZRLoFTbID9TdrJk1h8hduS2RXYGRCGKcaYwZ5N4GB7hFpNN00ONjyRNFp");
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 // app.use(cors());
 
