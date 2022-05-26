@@ -7,6 +7,7 @@ require('dotenv').config();
 const ObjectId = require('mongodb').ObjectId;
 const app = express();
 const port = process.env.PORT || 5000;
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 app.use(cors());
 app.use(express.json());
@@ -31,6 +32,7 @@ function verifyJWT(req, res, next){
 
 }
 
+
 async function run() {
     try {
         await client.connect();
@@ -39,6 +41,22 @@ async function run() {
         const userCollection = client.db('autocar-tools').collection('users');
         const profileCollection = client.db('autocar-tools').collection('profiles');
         const reviewsCollection = client.db('autocar-tools').collection('reviews');
+        const paymentsCollection = client.db('autocar-tools').collection('payments');
+
+
+        //For Stripe
+        app.post('/create-payment-intent',  async(req, res) =>{
+            const order = req.body;
+            const price = order.price;
+            const amount = price*100;
+            const paymentIntent = await stripe.paymentIntents.create({
+              amount : amount,
+              currency: 'usd',
+              payment_method_types: ['card']
+            });
+            res.send({clientSecret: paymentIntent.client_secret})
+          });
+
 
         app.get('/tools', async (req, res) => {
             const query = {};
@@ -47,6 +65,7 @@ async function run() {
             res.send(tools);
 
         })
+
         //Add a product
         app.post('/tools', async (req, res) => {
             const item = req.body;
@@ -172,6 +191,30 @@ async function run() {
             res.send(user);
         })
 
+        app.get('/orders/:id', async(req, res) => {
+            const id = req.params.id;
+            const query = {_id: ObjectId(id)};
+            const order = await orderCollection.findOne(query);
+            res.send(order);
+        })
+
+        app.patch('/orders/:id',  async(req, res) =>{
+            const id  = req.params.id;
+            const payment = req.body;
+            const filter = {_id: ObjectId(id)};
+            const updatedDoc = {
+              $set: {
+                paid: true,
+                transactionId: payment.transactionId
+              }
+            }
+      
+            const result = await paymentsCollection.insertOne(payment);
+            const updatedOrder = await orderCollection.updateOne(filter, updatedDoc);
+            res.send(updatedDoc);
+          })
+      
+
 
         // delete an item by admin
         app.delete('/orders/:id', async (req, res) => {
@@ -198,6 +241,14 @@ async function run() {
         app.get('/reviews', async(req, res) => {
             const allOrders = await reviewsCollection.find().toArray();
             res.send(allOrders);
+        })
+
+        app.get('/reviews/:email', async (req, res) => {
+            const email = req.query.email;
+            const query = {email: email};
+            const cursor = reviewsCollection.find(query);
+            const review = await cursor.toArray();
+            res.send(review);
         })
 
 
