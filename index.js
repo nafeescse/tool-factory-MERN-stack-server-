@@ -182,6 +182,18 @@ async function run() {
             res.send({ result });
         });
 
+        // Status shipped
+        app.put('/orders/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const options = { upsert: true };
+            const updatedDoc = {
+                $set: { status: 'Shipped' },
+            };
+            const result = await orderCollection.updateOne(filter, updatedDoc, options);
+            res.send({ result });
+        });
+
         // POST ner order
 
         app.post('/orders', async (req, res) => {
