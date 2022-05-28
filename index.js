@@ -11,11 +11,8 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 // app.use(cors());
 
-app.use(cors({
-    origin: true
-}));
+app.use(cors());
 app.use(express.json());
-
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.6hlib.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
@@ -48,18 +45,17 @@ async function run() {
         const paymentsCollection = client.db('autocar-tools').collection('payments');
 
 
-        app.post('/create/payment', async (req, res) => {
+        app.post('/create-payment-intent', async (req, res) => {
             try {
                 const order = req.body;
-                console.log(order);
-                const price = order.price;
-                const amount = price * 100;
+                const price = order.totalPrice;
+                const amount = price*1;
                 const paymentIntent = await stripe.paymentIntents.create({
                     amount: amount,
                     currency: 'usd',
                     payment_method_types: ['card']
                 });
-                res.status(200).send(paymentIntent.client_secret);
+                res.status(200).send({client_secret: paymentIntent.client_secret})
             } catch (err) {
                 res
                     .status(500)
@@ -72,8 +68,9 @@ async function run() {
         });
 
 
-        app.get('/orders/:id', async (req, res) => {
+        app.get('/order/:id', async (req, res) => {
             const id = req.params.id;
+            console.log('id:',id);
 
             const query = { _id: ObjectId(id) };
             const order = await orderCollection.findOne(query);
@@ -146,7 +143,7 @@ async function run() {
 
         app.post('/profile', async (req, res) => {
             const profile = req.body;
-            console.log('adding new item', profile);
+            console.log('adding new profile', profile);
             const result = await profileCollection.insertOne(profile);
             res.send(result)
         });
@@ -166,7 +163,7 @@ async function run() {
 
         app.get('/admin/:email', async (req, res) => {
             const email = req.params.email;
-            const user = await userCollection.findOne({ email: email });
+            const user = await userCollection.findOne({email: email});
             const isAdmin = user.role === 'admin';
             res.send({ admin: isAdmin });
         })
@@ -198,7 +195,7 @@ async function run() {
 
         app.post('/orders', async (req, res) => {
             const order = req.body;
-            console.log('adding new item', order);
+            console.log('placing new order', order);
             const result = await orderCollection.insertOne(order);
             res.send(result)
         });
@@ -269,7 +266,7 @@ async function run() {
 
         app.post('/reviews', async (req, res) => {
             const reviews = req.body;
-            console.log('adding new item', reviews);
+            console.log('adding new review', reviews);
             const result = await reviewsCollection.insertOne(reviews);
             res.send(result)
         });
@@ -290,7 +287,7 @@ async function run() {
         })
 
 
-        console.log('connected db');
+        console.log('Congo....Autocar is connected successfully!!');
 
     }
     finally {
